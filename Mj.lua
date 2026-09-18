@@ -1,21 +1,93 @@
--- 💜 MJ 1.0 | by Mikael_N244BR
+-- ⚫ MJ 1.0 | by Mikael_N244BR
 local P=game:GetService("Players")
 local R=game:GetService("RunService")
 local U=game:GetService("UserInputService")
 local p=P.LocalPlayer
 local cam=workspace.CurrentCamera
+local CRIADOR="Mikael_N244BR"
 
-local st={noclip=false,infJump=false,vovo=false,mira=false,chave=false,arremesso=false,speed=16}
-local verde=Color3.fromRGB(180,120,255)
+local st={noclip=false,infJump=false,vovo=false,mira=false,chave=false,fechadura=false,speed=16}
+local branco=Color3.fromRGB(255,255,255)
+local cinza=Color3.fromRGB(200,200,220)
 local roxo=Color3.fromRGB(150,80,255)
-local roxoEsc=Color3.fromRGB(90,50,170)
-local roxoClaro=Color3.fromRGB(220,180,255)
 
 local gui=Instance.new("ScreenGui",game.CoreGui)
 gui.Name="MJ"
 gui.ResetOnSpawn=false
+gui.IgnoreGuiInset=true
 
--- ═══════ 🚀 FOGUETE ULTRA ANIMADO ═══════
+-- 🌌 FUNDO PRETO COM CONSTELAÇÕES BRANCAS
+local bg=Instance.new("Frame",gui)
+bg.Size=UDim2.new(1,0,1,0)
+bg.BackgroundColor3=Color3.fromRGB(0,0,0)
+bg.BackgroundTransparency=0.2
+bg.BorderSizePixel=0
+bg.ZIndex=-10
+
+local constBg=Instance.new("Frame",gui)
+constBg.Size=UDim2.new(1,0,1,0)
+constBg.BackgroundTransparency=1
+constBg.ZIndex=-9
+
+local constStars={}
+for c=1,10 do
+ local bx=math.random(5,85)/100
+ local by=math.random(5,85)/100
+ local n=math.random(4,7)
+ local g={}
+ for i=1,n do
+  local s=Instance.new("Frame",constBg)
+  s.Size=UDim2.new(0,math.random(2,3),0,math.random(2,3))
+  s.Position=UDim2.new(bx+math.random(-10,10)/100,0,by+math.random(-10,10)/100,0)
+  s.BackgroundColor3=branco
+  s.BackgroundTransparency=math.random(20,50)/100
+  s.BorderSizePixel=0
+  s.ZIndex=-8
+  Instance.new("UICorner",s).CornerRadius=UDim.new(1,0)
+  table.insert(g,s)
+  table.insert(constStars,s)
+ end
+ for i=1,#g-1 do
+  local a=g[i] local b=g[i+1]
+  local ax,ay=a.Position.X.Scale*100,a.Position.Y.Scale*100
+  local bx2,by2=b.Position.X.Scale*100,b.Position.Y.Scale*100
+  local dx,dy=bx2-ax,by2-ay
+  local dist=math.sqrt(dx*dx+dy*dy)
+  local ang=math.deg(math.atan2(dy,dx))
+  local line=Instance.new("Frame",constBg)
+  line.Size=UDim2.new(0,dist*3.2,0,1)
+  line.Position=UDim2.new(ax/100,0,ay/100,0)
+  line.Rotation=ang
+  line.BackgroundColor3=branco
+  line.BackgroundTransparency=0.6
+  line.BorderSizePixel=0
+  line.ZIndex=-9
+  table.insert(constStars,line)
+ end
+end
+for i=1,40 do
+ local s=Instance.new("Frame",constBg)
+ s.Size=UDim2.new(0,1,0,1)
+ s.Position=UDim2.new(math.random(),0,math.random(),0)
+ s.BackgroundColor3=branco
+ s.BackgroundTransparency=math.random(40,80)/100
+ s.BorderSizePixel=0
+ s.ZIndex=-9
+ Instance.new("UICorner",s).CornerRadius=UDim.new(1,0)
+ table.insert(constStars,s)
+end
+task.spawn(function()
+ while gui.Parent do
+  for _,s in ipairs(constStars) do
+   if s.Parent and s:IsA("Frame") and s.Size.X.Offset<=3 then
+    s.BackgroundTransparency=math.random(20,80)/100
+   end
+  end
+  task.wait(0.5)
+ end
+end)
+
+-- 🚀 FOGUETE ULTRA ANIMADO
 local rocket=Instance.new("TextLabel",gui)
 rocket.Size=UDim2.new(0,80,0,80)
 rocket.Position=UDim2.new(0.5,-40,1,80)
@@ -48,7 +120,7 @@ local smokes={}
 for i=1,20 do
  local s=Instance.new("Frame",gui)
  s.Size=UDim2.new(0,22,0,22)
- s.BackgroundColor3=Color3.fromRGB(230,230,255)
+ s.BackgroundColor3=branco
  s.BackgroundTransparency=0.4
  s.BorderSizePixel=0
  s.Visible=false
@@ -70,8 +142,8 @@ nomeMJ.Size=UDim2.new(0,500,0,100)
 nomeMJ.Position=UDim2.new(0.5,-250,0.5,-50)
 nomeMJ.BackgroundTransparency=1
 nomeMJ.Text="MJ 1.0"
-nomeMJ.TextColor3=Color3.fromRGB(255,255,255)
-nomeMJ.TextStrokeColor3=roxo
+nomeMJ.TextColor3=branco
+nomeMJ.TextStrokeColor3=Color3.fromRGB(80,80,80)
 nomeMJ.TextStrokeTransparency=0
 nomeMJ.Font=Enum.Font.GothamBold
 nomeMJ.TextSize=60
@@ -83,11 +155,9 @@ task.spawn(function()
   local yPos=1-t
   rocket.Position=UDim2.new(0.5,-40,yPos,0)
   rocket.Rotation=math.sin(t*15)*20
-  
   fogo.Position=UDim2.new(0.5,-25,yPos,65)
   fogo.Size=UDim2.new(0,50+math.random(-8,8),0,50+math.random(-8,8))
   fogo.Rotation=math.random(-15,15)
-  
   for i,s in ipairs(smokes) do
    s.Visible=true
    local off=0.04*i
@@ -95,7 +165,6 @@ task.spawn(function()
    s.BackgroundTransparency=0.2+(i/20)*0.7
    s.Size=UDim2.new(0,20-i/2,0,20-i/2)
   end
-  
   for i,s in ipairs(sparks) do
    if not s.Visible then
     s.Visible=true
@@ -105,11 +174,8 @@ task.spawn(function()
    s.Position=s.Position+UDim2.new(math.random(-3,3)/100,0,-2/100,0)
    s.TextTransparency=s.TextTransparency+0.02
   end
-  
   task.wait(0.012)
  end
- 
- -- Explosão
  explosao.Position=UDim2.new(0.5,-100,-0.15,0)
  explosao.Size=UDim2.new(0,200,0,200)
  explosao.Visible=true
@@ -124,8 +190,6 @@ task.spawn(function()
  fogo:Destroy()
  for _,s in ipairs(smokes) do s:Destroy() end
  for _,s in ipairs(sparks) do s:Destroy() end
- 
- -- Nome aparece piscando
  nomeMJ.Text="🚀 MJ 1.0 🚀"
  for i=1,8 do
   nomeMJ.TextTransparency=math.abs(math.sin(i/2))
@@ -133,7 +197,7 @@ task.spawn(function()
   task.wait(0.08)
  end
  nomeMJ.TextTransparency=0
- nomeMJ.Text="✨ MJ 1.0 ✨"
+ nomeMJ.Text="MJ 1.0"
  task.wait(1)
  for i=1,20 do
   nomeMJ.TextTransparency=i/20
@@ -144,58 +208,102 @@ end)
 
 task.wait(4)
 
--- ═══════ 🎯 BOLINHA MJ ═══════
+-- ⚫ BOLINHA MJ PRETA COM ESTRELINHAS
 local ball=Instance.new("Frame",gui)
 ball.Size=UDim2.new(0,60,0,60)
 ball.Position=UDim2.new(0,20,0.5,-30)
-ball.BackgroundColor3=Color3.fromRGB(15,8,35)
+ball.BackgroundColor3=Color3.fromRGB(5,5,5)
 ball.BorderSizePixel=0
 ball.Active=true
 Instance.new("UICorner",ball).CornerRadius=UDim.new(1,0)
 local bs=Instance.new("UIStroke",ball)
-bs.Color=roxo
-bs.Thickness=3
+bs.Color=branco
+bs.Thickness=2
+
+for i=1,12 do
+ local s=Instance.new("Frame",ball)
+ s.Size=UDim2.new(0,math.random(1,2),0,math.random(1,2))
+ s.Position=UDim2.new(math.random()*0.9,0,math.random()*0.9,0)
+ s.BackgroundColor3=branco
+ s.BackgroundTransparency=math.random(0,40)/100
+ s.BorderSizePixel=0
+ Instance.new("UICorner",s).CornerRadius=UDim.new(1,0)
+end
 
 local mj=Instance.new("TextLabel",ball)
 mj.Size=UDim2.new(1,0,1,0)
 mj.BackgroundTransparency=1
-mj.Text="💜MJ💜"
-mj.TextColor3=roxoClaro
-mj.TextStrokeColor3=roxo
-mj.TextStrokeTransparency=0.3
+mj.Text="MJ"
+mj.TextColor3=branco
+mj.TextStrokeColor3=Color3.fromRGB(0,0,0)
+mj.TextStrokeTransparency=0.2
 mj.Font=Enum.Font.GothamBold
 mj.TextScaled=true
 mj.ZIndex=5
 
--- ═══════ 🎨 PAINEL ═══════
+-- ⚫ PAINEL PRETO COM CONSTELAÇÕES
 local panel=Instance.new("Frame",gui)
-panel.Size=UDim2.new(0,270,0,400)
-panel.Position=UDim2.new(0,90,0.5,-200)
-panel.BackgroundColor3=Color3.fromRGB(10,5,25)
+panel.Size=UDim2.new(0,290,0,420)
+panel.Position=UDim2.new(0,90,0.5,-210)
+panel.BackgroundColor3=Color3.fromRGB(5,5,5)
 panel.BorderSizePixel=0
 panel.Visible=false
 Instance.new("UICorner",panel).CornerRadius=UDim.new(0,12)
 local ps=Instance.new("UIStroke",panel)
-ps.Color=roxo
-ps.Thickness=2
+ps.Color=branco
+ps.Thickness=1.5
 
--- ═══════ ESTRELAS DO PAINEL ═══════
-for i=1,30 do
- local s=Instance.new("Frame",panel)
- s.Size=UDim2.new(0,math.random(1,2),0,math.random(1,2))
- s.Position=UDim2.new(math.random()*0.95,0,math.random()*0.95,0)
- s.BackgroundColor3=Color3.fromRGB(220,220,255)
- s.BackgroundTransparency=math.random(40,80)/100
- s.BorderSizePixel=0
- s.ZIndex=1
- Instance.new("UICorner",s).CornerRadius=UDim.new(1,0)
+local pStars={}
+for c=1,4 do
+ local bx=math.random(10,70)/100
+ local by=math.random(10,70)/100
+ local g={}
+ for i=1,5 do
+  local s=Instance.new("Frame",panel)
+  s.Size=UDim2.new(0,math.random(1,2),0,math.random(1,2))
+  s.Position=UDim2.new(bx+math.random(-10,10)/100,0,by+math.random(-10,10)/100,0)
+  s.BackgroundColor3=branco
+  s.BackgroundTransparency=math.random(30,60)/100
+  s.BorderSizePixel=0
+  s.ZIndex=1
+  Instance.new("UICorner",s).CornerRadius=UDim.new(1,0)
+  table.insert(g,s)
+  table.insert(pStars,s)
+ end
+ for i=1,#g-1 do
+  local a=g[i] local b=g[i+1]
+  local ax,ay=a.Position.X.Scale*100,a.Position.Y.Scale*100
+  local bx2,by2=b.Position.X.Scale*100,b.Position.Y.Scale*100
+  local dx,dy=bx2-ax,by2-ay
+  local dist=math.sqrt(dx*dx+dy*dy)
+  local ang=math.deg(math.atan2(dy,dx))
+  local line=Instance.new("Frame",panel)
+  line.Size=UDim2.new(0,dist*3,0,1)
+  line.Position=UDim2.new(ax/100,0,ay/100,0)
+  line.Rotation=ang
+  line.BackgroundColor3=branco
+  line.BackgroundTransparency=0.7
+  line.BorderSizePixel=0
+  line.ZIndex=1
+  table.insert(pStars,line)
+ end
 end
+task.spawn(function()
+ while gui.Parent do
+  for _,s in ipairs(pStars) do
+   if s.Parent and s:IsA("Frame") and s.Size.X.Offset<=2 then
+    s.BackgroundTransparency=math.random(30,80)/100
+   end
+  end
+  task.wait(0.4)
+ end
+end)
 
 local titulo=Instance.new("TextLabel",panel)
 titulo.Size=UDim2.new(1,0,0,32)
-titulo.BackgroundColor3=roxoEsc
-titulo.Text="💜✨ MJ 1.0 ✨💜"
-titulo.TextColor3=Color3.fromRGB(255,255,255)
+titulo.BackgroundColor3=Color3.fromRGB(30,30,30)
+titulo.Text="⚫✨ MJ 1.0 ✨⚫"
+titulo.TextColor3=branco
 titulo.Font=Enum.Font.GothamBold
 titulo.TextSize=15
 titulo.BorderSizePixel=0
@@ -206,18 +314,38 @@ local cred=Instance.new("TextLabel",panel)
 cred.Size=UDim2.new(1,0,0,16)
 cred.Position=UDim2.new(0,0,0,34)
 cred.BackgroundTransparency=1
-cred.Text="💜 by Mikael_N244BR 💜"
-cred.TextColor3=roxoClaro
+cred.Text="by "..CRIADOR
+cred.TextColor3=cinza
 cred.Font=Enum.Font.Gotham
 cred.TextSize=10
 cred.ZIndex=3
 
+-- Avatar do criador
+task.spawn(function()
+ local ok,uid=pcall(function() return P:GetUserIdFromNameAsync(CRIADOR) end)
+ if ok and uid then
+  local ok2,thumb=pcall(function()
+   return P:GetUserThumbnailAsync(uid,Enum.ThumbnailType.HeadShot,Enum.ThumbnailSize.Size100x100)
+  end)
+  if ok2 and thumb then
+   local av=Instance.new("ImageLabel",panel)
+   av.Size=UDim2.new(0,30,0,30)
+   av.Position=UDim2.new(1,-36,0,38)
+   av.BackgroundColor3=Color3.fromRGB(20,20,20)
+   av.BorderSizePixel=0
+   av.Image=thumb
+   av.ZIndex=4
+   Instance.new("UICorner",av).CornerRadius=UDim.new(1,0)
+  end
+ end
+end)
+
 local fec=Instance.new("TextButton",panel)
 fec.Size=UDim2.new(0,22,0,22)
 fec.Position=UDim2.new(1,-26,0,5)
-fec.BackgroundColor3=Color3.fromRGB(200,30,60)
-fec.Text="❌"
-fec.TextColor3=Color3.fromRGB(255,255,255)
+fec.BackgroundColor3=Color3.fromRGB(180,30,50)
+fec.Text="X"
+fec.TextColor3=branco
 fec.Font=Enum.Font.GothamBold
 fec.TextSize=12
 fec.BorderSizePixel=0
@@ -225,14 +353,20 @@ fec.ZIndex=4
 Instance.new("UICorner",fec).CornerRadius=UDim.new(1,0)
 fec.MouseButton1Click:Connect(function() panel.Visible=false end)
 
--- ═══════ ABAS ═══════
+-- ABAS
 local tabBar=Instance.new("Frame",panel)
-tabBar.Size=UDim2.new(1,-10,0,30)
-tabBar.Position=UDim2.new(0,5,0,55)
+tabBar.Size=UDim2.new(1,-10,0,28)
+tabBar.Position=UDim2.new(0,5,0,56)
 tabBar.BackgroundTransparency=1
 tabBar.ZIndex=3
 
-local tabNomes={"🏠 Principal","👵 Vovó","💪 Arremessar","⚙️ Extra"}
+local content=Instance.new("Frame",panel)
+content.Size=UDim2.new(1,-10,1,-95)
+content.Position=UDim2.new(0,5,0,90)
+content.BackgroundTransparency=1
+content.ZIndex=3
+
+local tabNomes={"🏠 Principal","👵 Vovó","🔑 Chaves","⚙️ Extra"}
 local tabBtns={}
 local conteudos={}
 
@@ -240,58 +374,56 @@ for i,nome in ipairs(tabNomes) do
  local b=Instance.new("TextButton",tabBar)
  b.Size=UDim2.new(1/#tabNomes,-2,1,0)
  b.Position=UDim2.new((i-1)/#tabNomes,0,0,0)
- b.BackgroundColor3=Color3.fromRGB(40,25,80)
+ b.BackgroundColor3=Color3.fromRGB(25,25,25)
  b.Text=nome
- b.TextColor3=Color3.fromRGB(200,200,220)
+ b.TextColor3=cinza
  b.Font=Enum.Font.Gotham
  b.TextSize=9
  b.BorderSizePixel=0
  Instance.new("UICorner",b).CornerRadius=UDim.new(0,5)
  table.insert(tabBtns,b)
  
- local c=Instance.new("ScrollingFrame",panel)
- c.Size=UDim2.new(1,-10,1,-95)
- c.Position=UDim2.new(0,5,0,90)
+ local c=Instance.new("ScrollingFrame",content)
+ c.Size=UDim2.new(1,0,1,0)
  c.BackgroundTransparency=1
  c.BorderSizePixel=0
  c.ScrollBarThickness=4
- c.ScrollBarImageColor3=roxo
+ c.ScrollBarImageColor3=branco
  c.CanvasSize=UDim2.new(0,0,0,0)
  c.AutomaticCanvasSize=Enum.AutomaticSize.Y
  c.Visible=i==1
- c.ZIndex=3
  table.insert(conteudos,c)
  
  b.MouseButton1Click:Connect(function()
   for j=1,#conteudos do
    conteudos[j].Visible=j==i
-   tabBtns[j].BackgroundColor3=j==i and roxoEsc or Color3.fromRGB(40,25,80)
-   tabBtns[j].TextColor3=j==i and Color3.fromRGB(255,255,255) or Color3.fromRGB(200,200,220)
+   tabBtns[j].BackgroundColor3=j==i and Color3.fromRGB(60,60,60) or Color3.fromRGB(25,25,25)
+   tabBtns[j].TextColor3=j==i and branco or cinza
   end
  end)
 end
-tabBtns[1].BackgroundColor3=roxoEsc
-tabBtns[1].TextColor3=Color3.fromRGB(255,255,255)
+tabBtns[1].BackgroundColor3=Color3.fromRGB(60,60,60)
+tabBtns[1].TextColor3=branco
 
 local function addT(parent,y,txt,fn)
  local b=Instance.new("TextButton",parent)
  b.Size=UDim2.new(1,-8,0,30)
  b.Position=UDim2.new(0,4,0,y)
- b.BackgroundColor3=Color3.fromRGB(40,25,80)
- b.Text=txt.." ⭕"
- b.TextColor3=Color3.fromRGB(255,255,255)
+ b.BackgroundColor3=Color3.fromRGB(25,25,25)
+ b.Text=txt.." OFF"
+ b.TextColor3=branco
  b.Font=Enum.Font.GothamBold
  b.TextSize=12
  b.BorderSizePixel=0
  Instance.new("UICorner",b).CornerRadius=UDim.new(0,6)
  local sk=Instance.new("UIStroke",b)
- sk.Color=roxoEsc
+ sk.Color=Color3.fromRGB(100,100,100)
  sk.Thickness=1
  b.MouseButton1Click:Connect(function()
   local v=not b:GetAttribute("on")
   b:SetAttribute("on",v)
-  b.Text=txt..(v and " ✅" or " ⭕")
-  b.BackgroundColor3=v and roxoEsc or Color3.fromRGB(40,25,80)
+  b.Text=txt..(v and " ON" or " OFF")
+  b.BackgroundColor3=v and Color3.fromRGB(60,60,60) or Color3.fromRGB(25,25,25)
   fn(v)
  end)
  return b
@@ -301,9 +433,9 @@ local function addB(parent,y,txt,fn)
  local b=Instance.new("TextButton",parent)
  b.Size=UDim2.new(1,-8,0,30)
  b.Position=UDim2.new(0,4,0,y)
- b.BackgroundColor3=roxo
+ b.BackgroundColor3=Color3.fromRGB(50,50,50)
  b.Text=txt
- b.TextColor3=Color3.fromRGB(255,255,255)
+ b.TextColor3=branco
  b.Font=Enum.Font.GothamBold
  b.TextSize=12
  b.BorderSizePixel=0
@@ -312,7 +444,7 @@ local function addB(parent,y,txt,fn)
  return b
 end
 
--- Arrastar
+-- Arrastar / Clicar
 local drag,dStart,sPos=false,nil,nil
 local clickStart=0
 ball.InputBegan:Connect(function(i)
@@ -337,7 +469,7 @@ U.InputChanged:Connect(function(i)
  end
 end)
 
--- ═══════ LÓGICA ═══════
+-- LÓGICA
 local function sChar(m)
  if not m then return 0 end
  local h=m:FindFirstChild("HumanoidRootPart")
@@ -393,7 +525,7 @@ R:BindToRenderStep("MJA",201,function()
  end
 end)
 
--- ESP VOVÓ
+-- ESP VOVÓ (branco)
 local gHL,gBB
 local function espV(c)
  if not c or not c.Parent then return end
@@ -402,9 +534,9 @@ local function espV(c)
  else
   gHL=Instance.new("Highlight",c)
   gHL.Adornee=c
-  gHL.FillColor=roxo
+  gHL.FillColor=branco
   gHL.FillTransparency=0.75
-  gHL.OutlineColor=roxo
+  gHL.OutlineColor=branco
   gHL.OutlineTransparency=0
   gHL.DepthMode=Enum.HighlightDepthMode.AlwaysOnTop
  end
@@ -422,8 +554,8 @@ local function espV(c)
    t.BackgroundTransparency=1
    local pl=P:GetPlayerFromCharacter(c)
    t.Text="👵 "..(pl and pl.Name or c.Name)
-   t.TextColor3=roxoClaro
-   t.TextStrokeColor3=roxo
+   t.TextColor3=branco
+   t.TextStrokeColor3=Color3.fromRGB(0,0,0)
    t.TextStrokeTransparency=0
    t.TextScaled=true
    t.Font=Enum.Font.GothamBold
@@ -436,44 +568,6 @@ local function remV()
  gHL,gBB=nil,nil
 end
 
--- ARREMESSO COM FORÇA
-local forca=500
-local function getTool()
- local c=p.Character
- if not c then return nil end
- for _,t in ipairs(c:GetChildren()) do
-  if t:IsA("Tool") then return t end
- end
- return nil
-end
-local function arremessar(alvo)
- local c=p.Character
- if not c then return end
- local root=c:FindFirstChild("HumanoidRootPart")
- if not root then return end
- local tool=getTool()
- if not tool then
-  print("❌ Sem item na mão")
-  return
- end
- local hr=alvo:FindFirstChild("HumanoidRootPart") or alvo:FindFirstChild("Head")
- if not hr then return end
- 
- -- Mira
- cam.CFrame=CFrame.lookAt(cam.CFrame.Position,hr.Position)
- local flat=Vector3.new(hr.Position.X,root.Position.Y,hr.Position.Z)
- root.CFrame=CFrame.lookAt(root.Position,flat)
- task.wait(0.05)
- 
- -- Clica (múltiplos métodos)
- pcall(function() mouse1click() end)
- pcall(function() mouse1press() task.wait(0.05) mouse1release() end)
- pcall(function() tool:Activate() end)
- 
- print("💪 Arremesso disparado! Força: "..forca)
-end
-
--- LOOP ESP
 task.spawn(function()
  while true do
   if st.vovo then
@@ -486,8 +580,23 @@ task.spawn(function()
      if not o:FindFirstChild("MJK") then
       local hl=Instance.new("Highlight",o)
       hl.Name="MJK"
-      hl.FillColor=roxo
-      hl.OutlineColor=roxo
+      hl.FillColor=branco
+      hl.OutlineColor=branco
+      hl.FillTransparency=0.75
+      hl.OutlineTransparency=0
+      hl.DepthMode=Enum.HighlightDepthMode.AlwaysOnTop
+     end
+    end
+   end
+  end
+  if st.fechadura then
+   for _,o in ipairs(workspace:GetDescendants()) do
+    if o:IsA("BasePart") and (o.Name:lower():find("lock") or o.Name:lower():find("fechadura") or o.Name:lower():find("porta") or o.Name:lower():find("door")) then
+     if not o:FindFirstChild("MJF") then
+      local hl=Instance.new("Highlight",o)
+      hl.Name="MJF"
+      hl.FillColor=Color3.fromRGB(100,200,255)
+      hl.OutlineColor=Color3.fromRGB(100,200,255)
       hl.FillTransparency=0.75
       hl.OutlineTransparency=0
       hl.DepthMode=Enum.HighlightDepthMode.AlwaysOnTop
@@ -499,7 +608,7 @@ task.spawn(function()
  end
 end)
 
--- ═══════ CONTEÚDO DAS ABAS ═══════
+-- CONTEÚDO DAS ABAS
 local c1=conteudos[1]
 addT(c1,5,"🚶 Noclip",function(v)
  st.noclip=v
@@ -521,53 +630,38 @@ end)
 addT(c1,75,"🦘 Infinite Jump",function(v) st.infJump=v end)
 
 local c2=conteudos[2]
-addT(c2,5,"👵 ESP Vovó",function(v) st.vovo=v if not v then remV() end end)
+addT(c2,5,"👵 ESP Vovó (branco)",function(v) st.vovo=v if not v then remV() end end)
 addT(c2,40,"🎯 Mira Vovó",function(v) st.mira=v end)
-addB(c2,75,"📋 Listar (F9)",function()
+addB(c2,75,"📋 Listar Jogadores (F9)",function()
  local o=outros()
  table.sort(o,function(a,b) return a.s>b.s end)
- print("═══ 💜 JOGADORES ═══")
- for i,j in ipairs(o) do print("["..i.."] 👤 "..j.p.Name.." | 📏 "..string.format("%.2f",j.s)) end
+ print("═══ JOGADORES ═══")
+ for i,j in ipairs(o) do print("["..i.."] "..j.p.Name.." | Tam: "..string.format("%.2f",j.s)) end
 end)
 
 local c3=conteudos[3]
-addB(c3,5,"💪 Arremessar (Média Força)",function()
- local v=acharV()
- if not v then print("❌ Vovó não encontrada") return end
- forca=500
- arremessar(v)
-end)
-addB(c3,40,"💪💥 Arremessar (Força MÁXIMA)",function()
- local v=acharV()
- if not v then print("❌ Vovó não encontrada") return end
- forca=2000
- arremessar(v)
-end)
-addB(c3,75,"🎯💥 Arremessar (Curva)",function()
- local v=acharV()
- if not v then print("❌ Vovó não encontrada") return end
- local c=p.Character
- if not c then return end
- local root=c:FindFirstChild("HumanoidRootPart")
- local hr=v:FindFirstChild("HumanoidRootPart")
- if not root or not hr then return end
- -- Sobe um pouco antes
- local dir=(root.Position-hr.Position)
- dir=Vector3.new(dir.X,0,dir.Z)
- if dir.Magnitude<0.1 then dir=Vector3.new(0,0,1) end
- dir=dir.Unit
- root.CFrame=CFrame.new(hr.Position+dir*12+Vector3.new(0,45,0),hr.Position)
- task.wait(0.15)
- cam.CFrame=CFrame.lookAt(cam.CFrame.Position,hr.Position)
- task.wait(0.05)
- pcall(function() mouse1click() end)
- pcall(function() mouse1press() task.wait(0.05) mouse1release() end)
- print("🌀 Arremesso curvo!")
-end)
-addT(c3,110,"🔑 ESP Chaves",function(v) st.chave=v end)
-addB(c3,145,"🧹 Limpar",function()
- for _,o in ipairs(workspace:GetDescendants()) do
+addT(c3,5,"🔑 ESP Chaves",function(v) st.chave=v
+ if not v then for _,o in ipairs(workspace:GetDescendants()) do
   if o.Name=="MJK" then o:Destroy() end
+ end end
+end)
+addT(c3,40,"🚪 ESP Fechaduras (onde usa chave)",function(v) st.fechadura=v
+ if not v then for _,o in ipairs(workspace:GetDescendants()) do
+  if o.Name=="MJF" then o:Destroy() end
+ end end
+end)
+addB(c3,75,"🧹 Limpar Tudo",function()
+ for _,o in ipairs(workspace:GetDescendants()) do
+  if o.Name=="MJK" or o.Name=="MJF" then o:Destroy() end
+ end
+end)
+addB(c3,110,"📋 Listar no Console (F9)",function()
+ print("═══ CHAVES E FECHADURAS ═══")
+ for _,o in ipairs(workspace:GetDescendants()) do
+  local n=o.Name:lower()
+  if o:IsA("BasePart") and (n:find("key") or n:find("chave") or n:find("lock") or n:find("porta") or n:find("door")) then
+   print("["..o.ClassName.."] "..o:GetFullName())
+  end
  end
 end)
 
@@ -576,4 +670,4 @@ addB(c4,5,"🔄 Rejoin Server",function()
  game:GetService("TeleportService"):Teleport(game.PlaceId,p)
 end)
 
-print("💜 [MJ 1.0] by Mikael_N244BR carregado! 💜")
+print("⚫ [MJ 1.0] by "..CRIADOR.." carregado! ⚫")
