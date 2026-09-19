@@ -1,408 +1,580 @@
--- ⚽ MJ 1.0 | The Classic Soccer | by Mikael_n244br
-pcall(function()
-    local old=game.CoreGui:FindFirstChild("MJ")
-    if old then old:Destroy() end
-end)
+-- ⚫ MJ 1.0 | Destrua a Vovó | by Mikael_n244br
+-- Tema: Loading com constelação (igual ao do futebol)
 
 local P=game:GetService("Players")
 local R=game:GetService("RunService")
 local U=game:GetService("UserInputService")
-local L=game:GetService("Lighting")
+local SS=game:GetService("SoundService")
+local T=game:GetService("TweenService")
 local p=P.LocalPlayer
 local cam=workspace.CurrentCamera
 local CRIADOR="Mikael_n244br"
 
-local coresBola={
- {n="Branco",c=Color3.fromRGB(255,255,255)},
- {n="Amarelo",c=Color3.fromRGB(255,255,0)},
- {n="Verde",c=Color3.fromRGB(0,255,0)},
- {n="Vermelho",c=Color3.fromRGB(255,0,0)},
- {n="Azul",c=Color3.fromRGB(0,150,255)},
- {n="Roxo",c=Color3.fromRGB(180,0,255)},
- {n="Rosa",c=Color3.fromRGB(255,0,180)},
- {n="Ciano",c=Color3.fromRGB(0,255,255)},
- {n="Rainbow",c="rainbow"},
-}
-local coresCeu={
- {n="Padrao",c=Color3.fromRGB(255,255,255)},
- {n="Noite",c=Color3.fromRGB(20,20,50)},
- {n="Por do Sol",c=Color3.fromRGB(255,150,50)},
- {n="Roxo",c=Color3.fromRGB(80,20,120)},
- {n="Azul",c=Color3.fromRGB(50,100,200)},
- {n="Rosa",c=Color3.fromRGB(255,100,200)},
-}
+-- Container
+local container=p:WaitForChild("PlayerGui")
+for _,g in ipairs(container:GetChildren()) do
+    if g.Name=="MJ" or g.Name=="MJLoading" then g:Destroy() end
+end
+
+-- Cores
+local BRANCO=Color3.fromRGB(255,255,255)
+local CINZA=Color3.fromRGB(200,200,220)
+local ROXO=Color3.fromRGB(150,80,255)
+local ROXO_CLARO=Color3.fromRGB(200,150,255)
+local FUNDO=Color3.fromRGB(5,5,10)
 
 local st={
- autoBola=false, chuteForte=false, miraGol=false, superCurva=false,
- espBola=false, espGol=false, rage=false, speed=16,
- corBola=1, corCeu=1,
+ noclip=false,vovo=false,mira=false,chave=false,porta=false,alerta=false,
+ rage=false,rageSize=2,speed=16,cor=1,
 }
 
--- FUNÇÕES AUXILIARES
-local function acharBola()
- for _,o in ipairs(workspace:GetDescendants()) do
-  local n=o.Name:lower()
-  if (n:find("ball") or n:find("bola")) and o:IsA("BasePart") then return o end
- end
-end
+local cores={
+ {n="⚪ Branco",c=Color3.fromRGB(255,255,255)},
+ {n="🟡 Amarelo",c=Color3.fromRGB(255,255,0)},
+ {n="🟢 Verde",c=Color3.fromRGB(0,255,0)},
+ {n="🔴 Vermelho",c=Color3.fromRGB(255,0,0)},
+ {n="🔵 Azul",c=Color3.fromRGB(0,150,255)},
+ {n="🟣 Roxo",c=Color3.fromRGB(180,0,255)},
+ {n="🩷 Rosa",c=Color3.fromRGB(255,0,180)},
+ {n="💠 Ciano",c=Color3.fromRGB(0,255,255)},
+ {n="🟠 Laranja",c=Color3.fromRGB(255,130,0)},
+ {n="🌈 Rainbow",c="rainbow"},
+}
 
-local function acharGols()
- local gols={}
- for _,o in ipairs(workspace:GetDescendants()) do
-  local n=o.Name:lower()
-  if (n:find("goal") or n:find("gol") or n:find("net") or n:find("rede")) and o:IsA("BasePart") then
-   table.insert(gols,o)
-  end
- end
- return gols
-end
-
-local function acharGolAdversario()
- local c=p.Character
- if not c then return nil end
- local root=c:FindFirstChild("HumanoidRootPart")
- if not root then return nil end
- local gols=acharGols()
- if #gols==0 then return nil end
- local maisLonge,distMax=nil,0
- for _,g in ipairs(gols) do
-  local d=(root.Position-g.Position).Magnitude
-  if d>distMax then maisLonge,distMax=g,d end
- end
- return maisLonge
-end
-
-local function getCorBola()
- local c=coresBola[st.corBola].c
+local function getCor()
+ local c=cores[st.cor].c
  if c=="rainbow" then return Color3.fromHSV(tick()*0.4%1,1,1) end
  return c
 end
 
--- GUI
-local gui=Instance.new("ScreenGui",game.CoreGui)
-gui.Name="MJ"
-gui.ResetOnSpawn=false
-gui.DisplayOrder=999
+-- ═══════════════════════════════════════
+--   ⏳ TELA DE LOADING COM CONSTELAÇÃO
+-- ═══════════════════════════════════════
+local loadGui=Instance.new("ScreenGui")
+loadGui.Name="MJLoading"
+loadGui.ResetOnSpawn=false
+loadGui.IgnoreGuiInset=true
+loadGui.DisplayOrder=20000
+loadGui.Parent=container
 
--- FOGUETE
-local rocket=Instance.new("TextLabel",gui)
-rocket.Size=UDim2.new(0,80,0,80)
-rocket.Position=UDim2.new(0.5,-40,1,80)
-rocket.BackgroundTransparency=1
-rocket.Text="🚀"
-rocket.TextScaled=true
-rocket.Font=Enum.Font.GothamBold
-rocket.ZIndex=15
+local lBg=Instance.new("Frame",loadGui)
+lBg.Size=UDim2.new(1,0,1,0)
+lBg.BackgroundColor3=FUNDO
+lBg.BorderSizePixel=0
 
-local smokes={}
-for i=1,15 do
- local s=Instance.new("Frame",gui)
- s.Size=UDim2.new(0,20,0,20)
- s.BackgroundColor3=Color3.fromRGB(255,255,255)
- s.BackgroundTransparency=0.5
- s.BorderSizePixel=0
- s.Visible=false
- s.ZIndex=12
- Instance.new("UICorner",s).CornerRadius=UDim.new(1,0)
- table.insert(smokes,s)
+-- ═══════ CONSTELAÇÕES (linhas conectando estrelas) ═══════
+local constStars={}
+for c=1,10 do
+ local bx=math.random(5,85)/100
+ local by=math.random(5,85)/100
+ local n=math.random(4,7)
+ local grupo={}
+ for i=1,n do
+  local s=Instance.new("Frame",lBg)
+  s.Size=UDim2.new(0,math.random(2,4),0,math.random(2,4))
+  s.Position=UDim2.new(bx+math.random(-8,8)/100,0,by+math.random(-8,8)/100,0)
+  s.BackgroundColor3=BRANCO
+  s.BackgroundTransparency=math.random(20,50)/100
+  s.BorderSizePixel=0
+  Instance.new("UICorner",s).CornerRadius=UDim.new(1,0)
+  table.insert(grupo,s)
+  table.insert(constStars,s)
+ end
+ -- Linhas conectando as estrelas
+ for i=1,#grupo-1 do
+  local a=grupo[i]
+  local b=grupo[i+1]
+  local ax,ay=a.Position.X.Scale*100,a.Position.Y.Scale*100
+  local bx2,by2=b.Position.X.Scale*100,b.Position.Y.Scale*100
+  local dx,dy=bx2-ax,by2-ay
+  local dist=math.sqrt(dx*dx+dy*dy)
+  local ang=math.deg(math.atan2(dy,dx))
+  local line=Instance.new("Frame",lBg)
+  line.Size=UDim2.new(0,dist*3.2,0,1)
+  line.Position=UDim2.new(ax/100,0,ay/100,0)
+  line.Rotation=ang
+  line.BackgroundColor3=BRANCO
+  line.BackgroundTransparency=0.7
+  line.BorderSizePixel=0
+  table.insert(constStars,line)
+ end
 end
 
-local explosao=Instance.new("TextLabel",gui)
-explosao.Size=UDim2.new(0,10,0,10)
-explosao.BackgroundTransparency=1
-explosao.Text="💥"
-explosao.TextScaled=true
-explosao.Visible=false
-explosao.ZIndex=20
+-- Estrelinhas soltas extras
+for i=1,30 do
+ local s=Instance.new("Frame",lBg)
+ s.Size=UDim2.new(0,1,0,1)
+ s.Position=UDim2.new(math.random(),0,math.random(),0)
+ s.BackgroundColor3=BRANCO
+ s.BackgroundTransparency=math.random(50,85)/100
+ s.BorderSizePixel=0
+ Instance.new("UICorner",s).CornerRadius=UDim.new(1,0)
+ table.insert(constStars,s)
+end
 
-local nomeMJ=Instance.new("TextLabel",gui)
-nomeMJ.Size=UDim2.new(0,500,0,100)
-nomeMJ.Position=UDim2.new(0.5,-250,0.5,-50)
-nomeMJ.BackgroundTransparency=1
-nomeMJ.Text="⚽ MJ 1.0 ⚽"
-nomeMJ.TextColor3=Color3.fromRGB(255,255,255)
-nomeMJ.TextStrokeColor3=Color3.fromRGB(0,0,0)
-nomeMJ.TextStrokeTransparency=0
-nomeMJ.Font=Enum.Font.GothamBold
-nomeMJ.TextSize=60
-nomeMJ.TextTransparency=1
-nomeMJ.ZIndex=20
-
+-- Animação de piscar
 task.spawn(function()
- for t=0,1,0.008 do
-  local yPos=1-t
-  rocket.Position=UDim2.new(0.5,-40,yPos,0)
-  for i,s in ipairs(smokes) do
-   s.Visible=true
-   s.Position=UDim2.new(0.5+math.random(-40,40)/100,-10,yPos+0.05*i,0)
-   s.BackgroundTransparency=0.3+(i/15)*0.6
-   s.Size=UDim2.new(0,18-i,0,18-i)
+ while lBg.Parent do
+  for _,s in ipairs(constStars) do
+   if s.Parent and s:IsA("Frame") and s.Size.X.Offset<=3 then
+    s.BackgroundTransparency=math.random(20,85)/100
+   end
   end
-  task.wait(0.015)
+  task.wait(0.5)
  end
- explosao.Position=UDim2.new(0.5,-100,-0.15,0)
- explosao.Size=UDim2.new(0,200,0,200)
- explosao.Visible=true
- for i=1,12 do
-  explosao.Size=UDim2.new(0,200+i*30,0,200+i*30)
-  explosao.Position=UDim2.new(0.5,-100-i*15,-0.15-i*15,0)
-  explosao.TextTransparency=i/12
-  task.wait(0.03)
- end
- explosao:Destroy()
- rocket:Destroy()
- for _,s in ipairs(smokes) do s:Destroy() end
- for i=1,10 do
-  nomeMJ.TextTransparency=math.abs(math.sin(i/2))
-  task.wait(0.08)
- end
- nomeMJ.TextTransparency=0
- task.wait(1.2)
- for i=1,20 do
-  nomeMJ.TextTransparency=i/20
-  task.wait(0.03)
- end
- nomeMJ:Destroy()
 end)
 
-task.wait(5)
+-- Título
+local lTitle=Instance.new("TextLabel",lBg)
+lTitle.Size=UDim2.new(0,500,0,80)
+lTitle.Position=UDim2.new(0.5,-250,0.5,-60)
+lTitle.BackgroundTransparency=1
+lTitle.Text="⚫ MJ 1.0 ⚫"
+lTitle.TextColor3=BRANCO
+lTitle.TextStrokeColor3=Color3.fromRGB(80,80,80)
+lTitle.TextStrokeTransparency=0
+lTitle.Font=Enum.Font.GothamBold
+lTitle.TextSize=52
+lTitle.TextTransparency=1
 
--- BOLINHA ROXA
-local ball=Instance.new("Frame",gui)
-ball.Size=UDim2.new(0,60,0,60)
-ball.Position=UDim2.new(0,20,0.5,-30)
-ball.BackgroundColor3=Color3.fromRGB(50,0,80)
+-- Crédito
+local lSub=Instance.new("TextLabel",lBg)
+lSub.Size=UDim2.new(0,500,0,30)
+lSub.Position=UDim2.new(0.5,-250,0.5,30)
+lSub.BackgroundTransparency=1
+lSub.Text="by "..CRIADOR
+lSub.TextColor3=CINZA
+lSub.Font=Enum.Font.Gotham
+lSub.TextSize=14
+lSub.TextTransparency=1
+
+-- Barra de loading
+local lBarBg=Instance.new("Frame",lBg)
+lBarBg.Size=UDim2.new(0,280,0,4)
+lBarBg.Position=UDim2.new(0.5,-140,0.5,80)
+lBarBg.BackgroundColor3=Color3.fromRGB(30,30,40)
+lBarBg.BorderSizePixel=0
+Instance.new("UICorner",lBarBg).CornerRadius=UDim.new(0,2)
+
+local lBar=Instance.new("Frame",lBarBg)
+lBar.Size=UDim2.new(0,0,1,0)
+lBar.BackgroundColor3=BRANCO
+lBar.BorderSizePixel=0
+Instance.new("UICorner",lBar).CornerRadius=UDim.new(0,2)
+
+-- Texto de status
+local lStatus=Instance.new("TextLabel",lBg)
+lStatus.Size=UDim2.new(0,500,0,20)
+lStatus.Position=UDim2.new(0.5,-250,0.5,100)
+lStatus.BackgroundTransparency=1
+lStatus.Text="⏳ Carregando..."
+lStatus.TextColor3=Color3.fromRGB(150,150,180)
+lStatus.Font=Enum.Font.Gotham
+lStatus.TextSize=12
+lStatus.TextTransparency=1
+
+-- Animação do loading
+task.spawn(function()
+ local etapas={
+  "⏳ Iniciando...",
+  "🔧 Carregando módulos...",
+  "🎨 Aplicando tema...",
+  "🌟 Preparando interface...",
+  "🚀 Pronto!"
+ }
+ -- Fade in do título
+ for i=1,20 do
+  lTitle.TextTransparency=1-i/20
+  lSub.TextTransparency=1-i/20
+  lStatus.TextTransparency=1-i/20
+  task.wait(0.02)
+ end
+ -- Progresso da barra
+ for e=1,#etapas do
+  lStatus.Text=etapas[e]
+  for j=1,20 do
+   local total=(e-1)/#etapas + (j/20)/#etapas
+   lBar.Size=UDim2.new(total,0,1,0)
+   task.wait(0.02)
+  end
+  task.wait(0.1)
+ end
+ task.wait(0.3)
+ -- Fade out
+ for i=1,20 do
+  local a=i/20
+  lTitle.TextTransparency=a
+  lSub.TextTransparency=a
+  lStatus.TextTransparency=a
+  lBarBg.BackgroundTransparency=a
+  lBar.BackgroundTransparency=a
+  lBg.BackgroundTransparency=a
+  for _,s in ipairs(constStars) do
+   if s.Parent then
+    s.BackgroundTransparency=math.min(1,s.BackgroundTransparency+a)
+   end
+  end
+  task.wait(0.02)
+ end
+ loadGui:Destroy()
+end)
+
+task.wait(3.5)
+
+-- ═══════════════════════════════════════
+--   ⚫ GUI PRINCIPAL
+-- ═══════════════════════════════════════
+local gui=Instance.new("ScreenGui")
+gui.Name="MJ"
+gui.ResetOnSpawn=false
+gui.IgnoreGuiInset=true
+gui.DisplayOrder=9999
+gui.Parent=container
+
+-- ═══════ BOLINHA (preta com estrelinhas) ═══════
+local ball=Instance.new("TextButton")
+ball.Size=UDim2.new(0,65,0,65)
+ball.Position=UDim2.new(0,20,0.5,-32)
+ball.BackgroundColor3=Color3.fromRGB(5,5,5)
+ball.Text="MJ"
+ball.TextColor3=BRANCO
+ball.TextStrokeColor3=Color3.fromRGB(0,0,0)
+ball.TextStrokeTransparency=0.2
+ball.Font=Enum.Font.GothamBold
+ball.TextSize=22
 ball.BorderSizePixel=0
 ball.Active=true
+ball.AutoButtonColor=false
 ball.ZIndex=100
+ball.Parent=gui
 Instance.new("UICorner",ball).CornerRadius=UDim.new(1,0)
-local bs=Instance.new("UIStroke",ball)
-bs.Color=Color3.fromRGB(200,150,255)
-bs.Thickness=2
+local bStroke=Instance.new("UIStroke",ball)
+bStroke.Color=BRANCO
+bStroke.Thickness=3
 
-for i=1,10 do
+for i=1,12 do
  local s=Instance.new("Frame",ball)
  s.Size=UDim2.new(0,math.random(1,2),0,math.random(1,2))
- s.Position=UDim2.new(math.random()*90/100,0,math.random()*90/100,0)
- s.BackgroundColor3=Color3.fromRGB(255,255,255)
+ s.Position=UDim2.new(math.random()*85/100,0,math.random()*85/100,0)
+ s.BackgroundColor3=BRANCO
  s.BackgroundTransparency=math.random(0,30)/100
  s.BorderSizePixel=0
+ s.ZIndex=101
  Instance.new("UICorner",s).CornerRadius=UDim.new(1,0)
 end
 
-local mj=Instance.new("TextLabel",ball)
-mj.Size=UDim2.new(1,0,1,0)
-mj.BackgroundTransparency=1
-mj.Text="MJ"
-mj.TextColor3=Color3.fromRGB(255,255,255)
-mj.TextStrokeColor3=Color3.fromRGB(100,0,150)
-mj.TextStrokeTransparency=0.2
-mj.Font=Enum.Font.GothamBold
-mj.TextScaled=true
-mj.ZIndex=101
+-- ═══════ MENU ═══════
+local menu=Instance.new("Frame")
+menu.Size=UDim2.new(0,290,0,430)
+menu.Position=UDim2.new(0,100,0.5,-215)
+menu.BackgroundColor3=FUNDO
+menu.BorderSizePixel=0
+menu.Visible=false
+menu.Active=true
+menu.ZIndex=200
+menu.Parent=gui
+Instance.new("UICorner",menu).CornerRadius=UDim.new(0,14)
+Instance.new("UIStroke",menu).Color=BRANCO
+Instance.new("UIStroke",menu).Thickness=1.5
 
--- PAINEL
-local panel=Instance.new("Frame",gui)
-panel.Size=UDim2.new(0,280,0,420)
-panel.Position=UDim2.new(0,90,0.5,-210)
-panel.BackgroundColor3=Color3.fromRGB(10,5,20)
-panel.BorderSizePixel=0
-panel.Visible=false
-panel.Active=true
-panel.ZIndex=200
-Instance.new("UICorner",panel).CornerRadius=UDim.new(0,12)
-local ps=Instance.new("UIStroke",panel)
-ps.Color=Color3.fromRGB(150,100,255)
-ps.Thickness=1.5
+-- Constelações dentro do menu
+for i=1,25 do
+ local s=Instance.new("Frame",menu)
+ s.Size=UDim2.new(0,math.random(1,2),0,math.random(1,2))
+ s.Position=UDim2.new(math.random()*95/100,0,math.random()*95/100,0)
+ s.BackgroundColor3=BRANCO
+ s.BackgroundTransparency=math.random(50,85)/100
+ s.BorderSizePixel=0
+ s.ZIndex=201
+ Instance.new("UICorner",s).CornerRadius=UDim.new(1,0)
+end
 
-local titulo=Instance.new("TextLabel",panel)
-titulo.Size=UDim2.new(1,0,0,30)
-titulo.BackgroundColor3=Color3.fromRGB(60,30,100)
-titulo.Text="⚽ MJ 1.0 ⚽"
-titulo.TextColor3=Color3.fromRGB(255,255,255)
-titulo.Font=Enum.Font.GothamBold
-titulo.TextSize=15
-titulo.BorderSizePixel=0
-titulo.ZIndex=201
-Instance.new("UICorner",titulo).CornerRadius=UDim.new(0,12)
+local title=Instance.new("TextLabel",menu)
+title.Size=UDim2.new(1,0,0,32)
+title.BackgroundColor3=Color3.fromRGB(30,30,30)
+title.Text="⚫ MJ 1.0 ⚫"
+title.TextColor3=BRANCO
+title.Font=Enum.Font.GothamBold
+title.TextSize=15
+title.BorderSizePixel=0
+title.ZIndex=203
+Instance.new("UICorner",title).CornerRadius=UDim.new(0,14)
 
-local cred=Instance.new("TextLabel",panel)
+local cred=Instance.new("TextLabel",menu)
 cred.Size=UDim2.new(1,0,0,14)
-cred.Position=UDim2.new(0,0,0,31)
+cred.Position=UDim2.new(0,0,0,32)
 cred.BackgroundTransparency=1
 cred.Text="by "..CRIADOR
-cred.TextColor3=Color3.fromRGB(200,200,220)
+cred.TextColor3=CINZA
 cred.Font=Enum.Font.Gotham
 cred.TextSize=10
-cred.ZIndex=201
+cred.ZIndex=203
 
-local fec=Instance.new("TextButton",panel)
-fec.Size=UDim2.new(0,22,0,22)
-fec.Position=UDim2.new(1,-26,0,4)
-fec.BackgroundColor3=Color3.fromRGB(180,30,50)
-fec.Text="X"
-fec.TextColor3=Color3.fromRGB(255,255,255)
-fec.Font=Enum.Font.GothamBold
-fec.TextSize=12
-fec.BorderSizePixel=0
-fec.ZIndex=202
-Instance.new("UICorner",fec).CornerRadius=UDim.new(1,0)
-fec.MouseButton1Click:Connect(function() panel.Visible=false end)
+local closeBtn=Instance.new("TextButton",menu)
+closeBtn.Size=UDim2.new(0,24,0,24)
+closeBtn.Position=UDim2.new(1,-30,0,4)
+closeBtn.BackgroundColor3=Color3.fromRGB(200,30,60)
+closeBtn.Text="X"
+closeBtn.TextColor3=BRANCO
+closeBtn.Font=Enum.Font.GothamBold
+closeBtn.TextSize=13
+closeBtn.BorderSizePixel=0
+closeBtn.ZIndex=205
+closeBtn.Parent=menu
+Instance.new("UICorner",closeBtn).CornerRadius=UDim.new(1,0)
+closeBtn.MouseButton1Click:Connect(function() menu.Visible=false end)
 
--- 4 ABAS
-local tabNomes={"Jogo","Skills","Visual","Rage"}
+-- ═══════ ABAS ═══════
+local TABS={"Principal","Vovó","Chaves","Rage"}
 local tabBtns={}
-local tabConteudos={}
+local tabFrames={}
 
-for i,nome in ipairs(tabNomes) do
- local b=Instance.new("TextButton",panel)
- b.Size=UDim2.new(0.25,-4,0,26)
+local contentArea=Instance.new("Frame",menu)
+contentArea.Size=UDim2.new(1,-10,1,-100)
+contentArea.Position=UDim2.new(0,5,0,95)
+contentArea.BackgroundTransparency=1
+contentArea.ZIndex=202
+
+local function mostrarTab(i)
+ for j=1,#tabFrames do
+  tabFrames[j].Visible=(j==i)
+  tabBtns[j].BackgroundColor3=(j==i) and Color3.fromRGB(80,80,80) or Color3.fromRGB(25,25,25)
+  tabBtns[j].TextColor3=(j==i) and BRANCO or CINZA
+ end
+end
+
+for i,nome in ipairs(TABS) do
+ local b=Instance.new("TextButton",menu)
+ b.Size=UDim2.new(0.25,-4,0,24)
  b.Position=UDim2.new((i-1)*0.25+0.005,0,0,52)
  b.BackgroundColor3=Color3.fromRGB(25,25,25)
  b.Text=nome
- b.TextColor3=Color3.fromRGB(200,200,220)
+ b.TextColor3=CINZA
  b.Font=Enum.Font.GothamBold
- b.TextSize=10
+ b.TextSize=9
  b.BorderSizePixel=0
- b.ZIndex=202
+ b.ZIndex=205
+ b.Active=true
  Instance.new("UICorner",b).CornerRadius=UDim.new(0,5)
  table.insert(tabBtns,b)
  
- local c=Instance.new("Frame",panel)
- c.Size=UDim2.new(1,-10,1,-90)
- c.Position=UDim2.new(0,5,0,83)
+ local c=Instance.new("ScrollingFrame",contentArea)
+ c.Size=UDim2.new(1,0,1,0)
  c.BackgroundTransparency=1
- c.Active=false
- c.ZIndex=201
+ c.BorderSizePixel=0
+ c.ScrollBarThickness=3
+ c.ScrollBarImageColor3=BRANCO
+ c.CanvasSize=UDim2.new(0,0,0,0)
+ c.AutomaticCanvasSize=Enum.AutomaticSize.Y
  c.Visible=(i==1)
- table.insert(tabConteudos,c)
+ c.ZIndex=203
+ table.insert(tabFrames,c)
  
- b.MouseButton1Click:Connect(function()
-  for j=1,#tabConteudos do
-   tabConteudos[j].Visible=(j==i)
-   tabBtns[j].BackgroundColor3=(j==i) and Color3.fromRGB(60,60,60) or Color3.fromRGB(25,25,25)
-   tabBtns[j].TextColor3=(j==i) and Color3.fromRGB(255,255,255) or Color3.fromRGB(200,200,220)
-  end
- end)
+ b.MouseButton1Click:Connect(function() mostrarTab(i) end)
 end
-tabBtns[1].BackgroundColor3=Color3.fromRGB(60,60,60)
-tabBtns[1].TextColor3=Color3.fromRGB(255,255,255)
+mostrarTab(1)
 
-local function addT(parent,y,txt,fn)
- local b=Instance.new("TextButton",parent)
+-- Helpers
+local function addT(par,y,txt,fn)
+ local b=Instance.new("TextButton",par)
  b.Size=UDim2.new(1,-8,0,28)
  b.Position=UDim2.new(0,4,0,y)
- b.BackgroundColor3=Color3.fromRGB(30,30,30)
- b.Text=txt.." OFF"
- b.TextColor3=Color3.fromRGB(255,255,255)
+ b.BackgroundColor3=Color3.fromRGB(25,25,25)
+ b.Text=txt.."  ⭕"
+ b.TextColor3=BRANCO
  b.Font=Enum.Font.GothamBold
  b.TextSize=10
  b.BorderSizePixel=0
- b.ZIndex=210
+ b.ZIndex=205
  b.Active=true
+ b.AutoButtonColor=false
  Instance.new("UICorner",b).CornerRadius=UDim.new(0,6)
+ local est=false
  b.MouseButton1Click:Connect(function()
-  local v=not b:GetAttribute("on")
-  b:SetAttribute("on",v)
-  b.Text=txt..(v and " ON" or " OFF")
-  b.BackgroundColor3=v and Color3.fromRGB(60,60,60) or Color3.fromRGB(30,30,30)
-  fn(v)
+  est=not est
+  b.Text=txt..(est and "  ✅" or "  ⭕")
+  b.BackgroundColor3=est and Color3.fromRGB(80,80,80) or Color3.fromRGB(25,25,25)
+  fn(est)
  end)
- return b
 end
 
-local function addB(parent,y,txt,fn)
- local b=Instance.new("TextButton",parent)
+local function addB(par,y,txt,fn)
+ local b=Instance.new("TextButton",par)
  b.Size=UDim2.new(1,-8,0,28)
  b.Position=UDim2.new(0,4,0,y)
  b.BackgroundColor3=Color3.fromRGB(50,50,50)
  b.Text=txt
- b.TextColor3=Color3.fromRGB(255,255,255)
+ b.TextColor3=BRANCO
  b.Font=Enum.Font.GothamBold
  b.TextSize=10
  b.BorderSizePixel=0
- b.ZIndex=210
+ b.ZIndex=205
  b.Active=true
+ b.AutoButtonColor=false
  Instance.new("UICorner",b).CornerRadius=UDim.new(0,6)
- b.MouseButton1Click:Connect(function() fn(b) end)
- return b
+ b.MouseButton1Click:Connect(function()
+  b.BackgroundColor3=Color3.fromRGB(100,100,100)
+  task.wait(0.1)
+  b.BackgroundColor3=Color3.fromRGB(50,50,50)
+  fn()
+ end)
 end
 
--- Arrastar bolinha
-local drag,dStart,sPos=false,nil,nil
-local clickStart=0
-ball.InputBegan:Connect(function(i)
- if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then
-  drag=true dStart=i.Position sPos=ball.Position clickStart=tick()
- end
-end)
-ball.InputEnded:Connect(function(i)
- if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then
-  drag=false
-  if tick()-clickStart<0.3 then
-   panel.Visible=not panel.Visible
-   panel.Position=UDim2.new(ball.Position.X.Scale,ball.Position.X.Offset+70,ball.Position.Y.Scale,ball.Position.Y.Offset-10)
-  end
- end
-end)
-U.InputChanged:Connect(function(i)
- if drag and (i.UserInputType==Enum.UserInputType.MouseMovement or i.UserInputType==Enum.UserInputType.Touch) then
-  local d=i.Position-dStart
-  ball.Position=UDim2.new(sPos.X.Scale,sPos.X.Offset+d.X,sPos.Y.Scale,sPos.Y.Offset+d.Y)
-  panel.Position=UDim2.new(ball.Position.X.Scale,ball.Position.X.Offset+70,ball.Position.Y.Scale,ball.Position.Y.Offset-10)
- end
-end)
+local function addLbl(par,y,txt)
+ local l=Instance.new("TextLabel",par)
+ l.Size=UDim2.new(1,-8,0,18)
+ l.Position=UDim2.new(0,4,0,y)
+ l.BackgroundTransparency=1
+ l.Text=txt
+ l.TextColor3=CINZA
+ l.Font=Enum.Font.Gotham
+ l.TextSize=10
+ l.TextXAlignment=Enum.TextXAlignment.Left
+ l.ZIndex=205
+ return l
+end
 
--- ⚽ LÓGICA
+-- DETECÇÃO
+local function sChar(m)
+ if not m then return 0 end
+ local h=m:FindFirstChild("HumanoidRootPart")
+ if not h then return 0 end
+ return math.max(h.Size.X,h.Size.Y,h.Size.Z)
+end
 
--- Auto-Bola
-task.spawn(function()
- while true do
-  if st.autoBola then
-   local bola=acharBola()
-   local c=p.Character
-   if bola and c then
-    local root=c:FindFirstChild("HumanoidRootPart")
-    local hum=c:FindFirstChildOfClass("Humanoid")
-    if root and hum then
-     local dist=(root.Position-bola.Position).Magnitude
-     if dist>5 then hum:MoveTo(bola.Position) end
-    end
+local vRef=nil
+local function acharV()
+ if vRef and vRef.Parent then
+  local h=vRef:FindFirstChildOfClass("Humanoid")
+  if h and h.Health>0 then return vRef end
+ end
+ local maior,tam=nil,0
+ for _,j in ipairs(P:GetPlayers()) do
+  if j~=p and j.Character then
+   local h=j.Character:FindFirstChildOfClass("Humanoid")
+   if h and h.Health>0 then
+    local s=sChar(j.Character)
+    if s>tam then maior,tam=j.Character,s end
    end
   end
-  task.wait(0.2)
+ end
+ vRef=maior
+ return maior
+end
+
+-- LÓGICAS
+R.Stepped:Connect(function()
+ if st.noclip then
+  local c=p.Character
+  if c then for _,x in ipairs(c:GetDescendants()) do
+   if x:IsA("BasePart") then x.CanCollide=false end
+  end end
  end
 end)
 
--- Chute Forte + Super Curva + Mira no Gol
+R:BindToRenderStep("MJA",201,function()
+ if st.mira then
+  local v=acharV()
+  if v then
+   local h=v:FindFirstChild("HumanoidRootPart") or v:FindFirstChild("Head")
+   if h then cam.CFrame=CFrame.lookAt(cam.CFrame.Position,h.Position) end
+  end
+ end
+end)
+
+local som=Instance.new("Sound",SS)
+som.SoundId="rbxassetid://9120386436"
+som.Volume=2
+
+local gHL,gBB
+local function espV(c)
+ if not c or not c.Parent then return end
+ local cor=getCor()
+ if gHL and gHL.Parent then
+  gHL.Adornee=c
+  gHL.FillColor=cor
+  gHL.OutlineColor=cor
+ else
+  gHL=Instance.new("Highlight",c)
+  gHL.Name="MJHV"
+  gHL.Adornee=c
+  gHL.FillColor=cor
+  gHL.FillTransparency=0.75
+  gHL.OutlineColor=cor
+  gHL.OutlineTransparency=0
+  gHL.DepthMode=Enum.HighlightDepthMode.AlwaysOnTop
+ end
+ local h=c:FindFirstChild("Head") or c:FindFirstChild("HumanoidRootPart")
+ if h then
+  if gBB and gBB.Parent then
+   gBB.Parent=h
+  else
+   gBB=Instance.new("BillboardGui",h)
+   gBB.Size=UDim2.new(0,100,0,14)
+   gBB.StudsOffset=Vector3.new(0,3,0)
+   gBB.AlwaysOnTop=true
+   local t=Instance.new("TextLabel",gBB)
+   t.Size=UDim2.new(1,0,1,0)
+   t.BackgroundTransparency=1
+   local pl=P:GetPlayerFromCharacter(c)
+   t.Text="👵 "..(pl and pl.Name or c.Name)
+   t.TextColor3=cor
+   t.TextStrokeColor3=Color3.fromRGB(0,0,0)
+   t.TextStrokeTransparency=0
+   t.TextScaled=true
+   t.Font=Enum.Font.GothamBold
+  end
+ end
+end
+
+local function remV()
+ if gHL and gHL.Parent then gHL:Destroy() end
+ if gBB and gBB.Parent then gBB:Destroy() end
+ gHL,gBB=nil,nil
+end
+
+-- Rage
 task.spawn(function()
  while true do
-  if st.chuteForte or st.miraGol or st.superCurva then
-   local bola=acharBola()
+  local c=p.Character
+  if c then
+   local hum=c:FindFirstChildOfClass("Humanoid")
+   if hum then
+    pcall(function()
+     if st.rage then
+      hum.BodyDepthScale.Value=st.rageSize
+      hum.BodyHeightScale.Value=st.rageSize
+      hum.BodyWidthScale.Value=st.rageSize
+      hum.HeadScale.Value=st.rageSize
+     elseif hum.BodyDepthScale.Value~=1 then
+      hum.BodyDepthScale.Value=1
+      hum.BodyHeightScale.Value=1
+      hum.BodyWidthScale.Value=1
+      hum.HeadScale.Value=1
+     end
+    end)
+   end
+  end
+  task.wait(0.5)
+ end
+end)
+
+-- Alerta
+local ultimoBip=0
+task.spawn(function()
+ while true do
+  if st.alerta then
+   local v=acharV()
    local c=p.Character
-   if bola and c then
-    local root=c:FindFirstChild("HumanoidRootPart")
-    if root then
-     local dist=(root.Position-bola.Position).Magnitude
-     if dist<6 then
-      local alvo=nil
-      if st.miraGol or st.superCurva then
-       alvo=acharGolAdversario()
-      end
-      if alvo then
-       local dir=(alvo.Position-bola.Position).Unit
-       local forca=st.chuteForte and 350 or 200
-       if st.superCurva then
-        -- Adiciona arco na trajetória
-        local perpendicular=Vector3.new(-dir.Z,0,dir.X)
-        bola.AssemblyLinearVelocity=dir*forca+perpendicular*80+Vector3.new(0,60,0)
-       else
-        bola.AssemblyLinearVelocity=dir*forca
-       end
-      else
-       local dir=(bola.Position-root.Position).Unit
-       bola.AssemblyLinearVelocity=dir*300
-      end
+   if v and c then
+    local mr=c:FindFirstChild("HumanoidRootPart")
+    local vr=v:FindFirstChild("HumanoidRootPart")
+    if mr and vr then
+     local d=(mr.Position-vr.Position).Magnitude
+     if d<40 and tick()-ultimoBip>1 then
+      ultimoBip=tick()
+      pcall(function() som:Play() end)
+      print("[MJ] Vovó perto! "..math.floor(d).." studs")
      end
     end
    end
@@ -411,250 +583,177 @@ task.spawn(function()
  end
 end)
 
--- Cor da bola
+-- Loop ESP
 task.spawn(function()
  while true do
-  local bola=acharBola()
-  if bola then
-   local cor=getCorBola()
-   pcall(function() bola.Color=cor end)
-   pcall(function() bola.Material=Enum.Material.Neon end)
+  local cor=getCor()
+  if st.vovo then
+   local v=acharV()
+   if v then espV(v) end
   end
-  task.wait(0.5)
- end
-end)
-
--- Cor do céu
-task.spawn(function()
- while true do
-  if L then
-   local cor=coresCeu[st.corCeu].c
-   pcall(function()
-    L.Ambient=cor
-    L.OutdoorAmbient=cor
-    L.ColorShift_Top=cor
-   end)
-  end
-  task.wait(1)
- end
-end)
-
--- Rage Mode
-task.spawn(function()
- while true do
-  if st.rage then
-   local c=p.Character
-   if c then
-    local hum=c:FindFirstChildOfClass("Humanoid")
-    if hum then
-     pcall(function()
-      hum.BodyDepthScale.Value=2
-      hum.BodyHeightScale.Value=2
-      hum.BodyWidthScale.Value=2
-      hum.HeadScale.Value=2
-     end)
-    end
-   end
-  end
-  task.wait(0.5)
- end
-end)
-
--- ESP Bola + Gol
-local espHLS={}
-task.spawn(function()
- while true do
-  local cor=getCorBola()
-  -- ESP Bola
-  if st.espBola then
-   local bola=acharBola()
-   if bola and not bola:FindFirstChild("MJBallHL") then
-    local hl=Instance.new("Highlight",bola)
-    hl.Name="MJBallHL"
-    hl.FillColor=cor
-    hl.OutlineColor=cor
-    hl.FillTransparency=0.5
-    hl.OutlineTransparency=0
-    hl.DepthMode=Enum.HighlightDepthMode.AlwaysOnTop
-    table.insert(espHLS,hl)
-   end
-  else
+  if st.chave then
    for _,o in ipairs(workspace:GetDescendants()) do
-    if o.Name=="MJBallHL" then o:Destroy() end
-   end
-  end
-  -- ESP Gol
-  if st.espGol then
-   for _,g in ipairs(acharGols()) do
-    if not g:FindFirstChild("MJGolHL") then
-     local hl=Instance.new("Highlight",g)
-     hl.Name="MJGolHL"
-     hl.FillColor=Color3.fromRGB(0,255,0)
-     hl.OutlineColor=Color3.fromRGB(0,255,0)
-     hl.FillTransparency=0.5
-     hl.OutlineTransparency=0
-     hl.DepthMode=Enum.HighlightDepthMode.AlwaysOnTop
+    if o:IsA("BasePart") and (o.Name:lower():find("key") or o.Name:lower():find("chave")) then
+     if not o:FindFirstChild("MJK") then
+      local hl=Instance.new("Highlight",o)
+      hl.Name="MJK"
+      hl.FillColor=cor
+      hl.OutlineColor=cor
+      hl.FillTransparency=0.75
+      hl.OutlineTransparency=0
+      hl.DepthMode=Enum.HighlightDepthMode.AlwaysOnTop
+     end
     end
    end
-  else
+  end
+  if st.porta then
    for _,o in ipairs(workspace:GetDescendants()) do
-    if o.Name=="MJGolHL" then o:Destroy() end
+    if o:IsA("BasePart") and (o.Name:lower():find("door") or o.Name:lower():find("porta") or o.Name:lower():find("lock")) then
+     if not o:FindFirstChild("MJP") then
+      local hl=Instance.new("Highlight",o)
+      hl.Name="MJP"
+      hl.FillColor=cor
+      hl.OutlineColor=cor
+      hl.FillTransparency=0.75
+      hl.OutlineTransparency=0
+      hl.DepthMode=Enum.HighlightDepthMode.AlwaysOnTop
+     end
+    end
+   end
+  end
+  if cores[st.cor].c=="rainbow" then
+   if gHL and gHL.Parent then gHL.FillColor=cor gHL.OutlineColor=cor end
+   if gBB and gBB.Parent then
+    local t=gBB:FindFirstChildWhichIsA("TextLabel")
+    if t then t.TextColor3=cor end
+   end
+   for _,o in ipairs(workspace:GetDescendants()) do
+    if o.Name=="MJK" or o.Name=="MJP" then
+     o.FillColor=cor
+     o.OutlineColor=cor
+    end
    end
   end
   task.wait(0.5)
  end
 end)
 
--- Time Display (Blue / Green)
-local timeGui=Instance.new("ScreenGui",game.CoreGui)
-timeGui.Name="MJ_Time"
-timeGui.ResetOnSpawn=false
+-- ═══════ CONTEÚDO DAS ABAS ═══════
 
-local timeFrame=Instance.new("Frame",timeGui)
-timeFrame.Size=UDim2.new(0,240,0,60)
-timeFrame.Position=UDim2.new(0.5,-120,0,20)
-timeFrame.BackgroundColor3=Color3.fromRGB(5,5,5)
-timeFrame.BackgroundTransparency=0.3
-timeFrame.BorderSizePixel=0
-Instance.new("UICorner",timeFrame).CornerRadius=UDim.new(0,8)
-local tfSt=Instance.new("UIStroke",timeFrame)
-tfSt.Color=Color3.fromRGB(150,100,255)
-tfSt.Thickness=1.5
-
-local blueLabel=Instance.new("TextLabel",timeFrame)
-blueLabel.Size=UDim2.new(0.5,-5,1,0)
-blueLabel.Position=UDim2.new(0,5,0,0)
-blueLabel.BackgroundTransparency=1
-blueLabel.Text="🔵 Blue"
-blueLabel.TextColor3=Color3.fromRGB(100,150,255)
-blueLabel.Font=Enum.Font.GothamBold
-blueLabel.TextSize=14
-blueLabel.TextScaled=true
-
-local greenLabel=Instance.new("TextLabel",timeFrame)
-greenLabel.Size=UDim2.new(0.5,-5,1,0)
-greenLabel.Position=UDim2.new(0.5,0,0,0)
-greenLabel.BackgroundTransparency=1
-greenLabel.Text="🟢 Green"
-greenLabel.TextColor3=Color3.fromRGB(100,255,100)
-greenLabel.Font=Enum.Font.GothamBold
-greenLabel.TextSize=14
-greenLabel.TextScaled=true
-
-task.spawn(function()
- while timeGui.Parent do
-  pcall(function()
-   local times=game:GetService("Teams"):GetTeams()
-   for _,t in ipairs(times) do
-    local nome=t.Name:lower()
-    if nome:find("blue") then
-     blueLabel.Text="🔵 "..t.Name
-    elseif nome:find("green") then
-     greenLabel.Text="🟢 "..t.Name
-    end
-   end
-   -- Tentar pegar do meu time
-   if p.Team then
-    local n=p.Team.Name:lower()
-    if n:find("blue") then
-     blueLabel.Text="🔵 "..p.Team.Name.." (VOCÊ)"
-    elseif n:find("green") then
-     greenLabel.Text="🟢 "..p.Team.Name.." (VOCÊ)"
-    end
-   end
-  end)
-  task.wait(1)
+-- Principal
+addT(tabFrames[1],5,"🚶 Noclip",function(v)
+ st.noclip=v
+ if not v then local c=p.Character
+  if c then for _,x in ipairs(c:GetDescendants()) do
+   if x:IsA("BasePart") then x.CanCollide=true end
+  end end
  end
 end)
-
--- BOTÕES
-
--- ABA JOGO
-addT(tabConteudos[1],5,"⚽ Auto-Bola",function(v) st.autoBola=v end)
-addT(tabConteudos[1],36,"💪 Chute Forte",function(v) st.chuteForte=v end)
-addT(tabConteudos[1],67,"🎯 Mira no Gol",function(v) st.miraGol=v end)
-addT(tabConteudos[1],98,"🌀 Super Curva",function(v) st.superCurva=v end)
-addB(tabConteudos[1],129,"⚡ Speed: 16",function(b)
+addB(tabFrames[1],40,"⚡ Speed: 16",function()
  st.speed=st.speed+16
  if st.speed>200 then st.speed=16 end
- b.Text="⚡ Speed: "..st.speed
  local c=p.Character
  if c then local h=c:FindFirstChildOfClass("Humanoid")
   if h then h.WalkSpeed=st.speed end
  end
 end)
-
--- ABA SKILLS
-addT(tabConteudos[2],5,"🎯 ESP Bola",function(v) st.espBola=v end)
-addT(tabConteudos[2],36,"🥅 ESP Gol",function(v) st.espGol=v end)
-addB(tabConteudos[2],67,"🔄 Rejoin",function()
+addB(tabFrames[1],75,"🔄 Rejoin",function()
  game:GetService("TeleportService"):Teleport(game.PlaceId,p)
 end)
 
--- ABA VISUAL
-local bolaBtn=Instance.new("TextButton",tabConteudos[3])
-bolaBtn.Size=UDim2.new(1,-8,0,28)
-bolaBtn.Position=UDim2.new(0,4,0,5)
-bolaBtn.BackgroundColor3=Color3.fromRGB(255,255,255)
-bolaBtn.Text="🎨 Bola: Branco"
-bolaBtn.TextColor3=Color3.fromRGB(0,0,0)
-bolaBtn.Font=Enum.Font.GothamBold
-bolaBtn.TextSize=10
-bolaBtn.BorderSizePixel=0
-bolaBtn.ZIndex=210
-bolaBtn.Active=true
-Instance.new("UICorner",bolaBtn).CornerRadius=UDim.new(0,6)
-bolaBtn.MouseButton1Click:Connect(function()
- st.corBola=st.corBola+1
- if st.corBola>#coresBola then st.corBola=1 end
- local c=coresBola[st.corBola]
- bolaBtn.Text="🎨 Bola: "..c.n
+-- Vovó
+addT(tabFrames[2],5,"👵 ESP Vovó",function(v) st.vovo=v if not v then remV() end end)
+addT(tabFrames[2],40,"🎯 Mira Vovó",function(v) st.mira=v end)
+addT(tabFrames[2],75,"🚨 Alerta Vovó",function(v) st.alerta=v end)
+
+local corBtn=Instance.new("TextButton",tabFrames[2])
+corBtn.Size=UDim2.new(1,-8,0,30)
+corBtn.Position=UDim2.new(0,4,0,110)
+corBtn.BackgroundColor3=BRANCO
+corBtn.Text="🎨 Cor: ⚪ Branco"
+corBtn.TextColor3=Color3.fromRGB(0,0,0)
+corBtn.Font=Enum.Font.GothamBold
+corBtn.TextSize=10
+corBtn.BorderSizePixel=0
+corBtn.ZIndex=205
+corBtn.Active=true
+Instance.new("UICorner",corBtn).CornerRadius=UDim.new(0,6)
+corBtn.MouseButton1Click:Connect(function()
+ st.cor=st.cor+1
+ if st.cor>#cores then st.cor=1 end
+ local c=cores[st.cor]
+ corBtn.Text="🎨 Cor: "..c.n
  if c.c=="rainbow" then
-  bolaBtn.BackgroundColor3=Color3.fromRGB(150,50,200)
-  bolaBtn.TextColor3=Color3.fromRGB(255,255,255)
+  corBtn.BackgroundColor3=Color3.fromRGB(150,50,200)
+  corBtn.TextColor3=BRANCO
  else
-  bolaBtn.BackgroundColor3=c.c
-  bolaBtn.TextColor3=(c.c.R+c.c.G+c.c.B<300) and Color3.fromRGB(255,255,255) or Color3.fromRGB(0,0,0)
+  corBtn.BackgroundColor3=c.c
+  corBtn.TextColor3=(c.c.R+c.c.G+c.c.B<300) and BRANCO or Color3.fromRGB(0,0,0)
  end
 end)
 
-local ceuBtn=Instance.new("TextButton",tabConteudos[3])
-ceuBtn.Size=UDim2.new(1,-8,0,28)
-ceuBtn.Position=UDim2.new(0,4,0,38)
-ceuBtn.BackgroundColor3=Color3.fromRGB(255,255,255)
-ceuBtn.Text="🌌 Ceu: Padrao"
-ceuBtn.TextColor3=Color3.fromRGB(0,0,0)
-ceuBtn.Font=Enum.Font.GothamBold
-ceuBtn.TextSize=10
-ceuBtn.BorderSizePixel=0
-ceuBtn.ZIndex=210
-ceuBtn.Active=true
-Instance.new("UICorner",ceuBtn).CornerRadius=UDim.new(0,6)
-ceuBtn.MouseButton1Click:Connect(function()
- st.corCeu=st.corCeu+1
- if st.corCeu>#coresCeu then st.corCeu=1 end
- local c=coresCeu[st.corCeu]
- ceuBtn.Text="🌌 Ceu: "..c.n
- ceuBtn.BackgroundColor3=c.c
- ceuBtn.TextColor3=(c.c.R+c.c.G+c.c.B<300) and Color3.fromRGB(255,255,255) or Color3.fromRGB(0,0,0)
+-- Chaves
+addT(tabFrames[3],5,"🔑 ESP Chaves",function(v)
+ st.chave=v
+ if not v then for _,o in ipairs(workspace:GetDescendants()) do
+  if o.Name=="MJK" then o:Destroy() end
+ end end
+end)
+addT(tabFrames[3],40,"🚪 ESP Portas",function(v)
+ st.porta=v
+ if not v then for _,o in ipairs(workspace:GetDescendants()) do
+  if o.Name=="MJP" then o:Destroy() end
+ end end
+end)
+addB(tabFrames[3],75,"🧹 Limpar",function()
+ for _,o in ipairs(workspace:GetDescendants()) do
+  if o.Name=="MJK" or o.Name=="MJP" then o:Destroy() end
+ end
 end)
 
--- ABA RAGE
-addT(tabConteudos[4],5,"💪 RAGE MODE (Skin Box)",function(v)
- st.rage=v
- if not v then
-  local c=p.Character
-  if c then local hum=c:FindFirstChildOfClass("Humanoid")
-   if hum then
-    pcall(function()
-     hum.BodyDepthScale.Value=1
-     hum.BodyHeightScale.Value=1
-     hum.BodyWidthScale.Value=1
-     hum.HeadScale.Value=1
-    end)
-   end
+-- Rage
+addT(tabFrames[4],5,"💪 Rage (Hitbox)",function(v) st.rage=v end)
+addLbl(tabFrames[4],40,"Tamanho: 2x")
+addB(tabFrames[4],60,"➕ Aumentar",function()
+ st.rageSize=math.min(5,st.rageSize+0.5)
+ tabFrames[4]:GetChildren()[2].Text="Tamanho: "..st.rageSize.."x"
+end)
+addB(tabFrames[4],95,"➖ Diminuir",function()
+ st.rageSize=math.max(1,st.rageSize-0.5)
+ tabFrames[4]:GetChildren()[2].Text="Tamanho: "..st.rageSize.."x"
+end)
+
+-- ═══════ ABRIR MENU ═══════
+ball.MouseButton1Click:Connect(function()
+ menu.Visible=not menu.Visible
+ if menu.Visible then
+  menu.Position=UDim2.new(ball.Position.X.Scale,ball.Position.X.Offset+75,ball.Position.Y.Scale,ball.Position.Y.Offset-215)
+ end
+end)
+
+-- ═══════ ARRASTAR ═══════
+local drag=false
+local dStart=nil
+local sPos=nil
+ball.InputBegan:Connect(function(i)
+ if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then
+  drag=true dStart=i.Position sPos=ball.Position
+ end
+end)
+U.InputChanged:Connect(function(i)
+ if drag and (i.UserInputType==Enum.UserInputType.MouseMovement or i.UserInputType==Enum.UserInputType.Touch) then
+  local d=i.Position-dStart
+  ball.Position=UDim2.new(sPos.X.Scale,sPos.X.Offset+d.X,sPos.Y.Scale,sPos.Y.Offset+d.Y)
+  if menu.Visible then
+   menu.Position=UDim2.new(ball.Position.X.Scale,ball.Position.X.Offset+75,ball.Position.Y.Scale,ball.Position.Y.Offset-215)
   end
  end
 end)
+U.InputEnded:Connect(function(i)
+ if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then
+  drag=false
+ end
+end)
 
-print("⚽ MJ 1.0 by "..CRIADOR.." carregado! ⚽")
+print("⚫ [MJ 1.0] by "..CRIADOR.." carregado!")
+print("[MJ] Toque na bolinha pra abrir")
